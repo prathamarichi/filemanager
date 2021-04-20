@@ -1,0 +1,32 @@
+{
+    "name": "prathamarichi/filemanager",
+    "description": "File Manager",
+    "type": "library",
+    "require": {
+        "php": ">=7.2.0",
+        "illuminate/support": "5.6.* || 5.7.* || 5.8.* || 6.0.*"
+    },
+    "license": "proprietary",
+    "authors": [
+      {
+        "name": "Richi Prathama",
+        "email": "richi.prathama@gmail.com"
+      }
+    ],
+    "autoload": {
+        "psr-4": {
+          "FIleManager\\": "src/FIleManager/"
+        },
+        "files": [
+          "src/FIleManager/Upload.php"
+        ]
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "FIleManager\\ManagerServiceProvider"
+            ]
+        }
+    },
+    "minimum-stability": "dev"
+}
