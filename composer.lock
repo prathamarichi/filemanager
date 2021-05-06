@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "06a3a0bf0ceb41cc99f1e0d4f2babb26",
+    "content-hash": "0254d5cc21c06c1ff076d0d2c66ae1b9",
     "packages": [
         {
             "name": "firebase/php-jwt",
@@ -911,7 +911,9 @@
                 "source": "https://github.com/rize/UriTemplate/tree/0.3.3"
             },
             "time": "2021-02-22T15:03:38+00:00"
-        },
+        }
+    ],
+    "packages-dev": [
         {
             "name": "symfony/console",
             "version": "3.4.x-dev",
@@ -1232,7 +1234,6 @@
             "time": "2021-02-19T12:13:01+00:00"
         }
     ],
-    "packages-dev": [],
     "aliases": [],
     "minimum-stability": "dev",
     "stability-flags": [],
