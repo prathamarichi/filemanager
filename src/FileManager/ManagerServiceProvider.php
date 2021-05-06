@@ -1,6 +1,6 @@
 <?php
 
-namespace FIleManager;
+namespace FileManager;
 
 use Illuminate\Support\ServiceProvider;
 
@@ -16,6 +16,6 @@ class ManagerServiceProvider extends ServiceProvider {
      */
     public function register() {
         $this->app->singleton('upload', Upload::class);
-        $this->app->singleton('browse', Browse::class);
+        $this->app->singleton('project', Bucket::class);
     }
 }
