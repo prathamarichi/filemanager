@@ -119,10 +119,10 @@ class Project {
         $metadata = __DIR__."/../../storage/metadata/".\strtolower($projectName).".json";
         if (file_exists($metadata)) {
             $metadataContent = json_decode(file_get_contents($metadata), true);
-            $manager->deletingFilesAtFolder($projectName, "standard", $metadataContent, true);
+            $manager->deletingFilesAtFolder($projectName, $metadataContent, "standard", true);
             unlink($metadata);
         }
-        $manager->deletingFilesAtBucket($projectName, "standard", $bucketName);
+        $manager->deletingFilesAtBucket($projectName, $bucketName, "standard");
 
         if ($this->checkBucket($bucketName)) $this->deleteBucket($bucketName);
 
@@ -130,10 +130,10 @@ class Project {
         $metadata = __DIR__."/../../storage/metadata/".\strtolower($projectName)."-export.json";
         if (file_exists($metadata)) {
             $metadataContent = json_decode(file_get_contents($metadata), true);
-            $manager->deletingFilesAtFolder($projectName, "export", $metadataContent, true);
+            $manager->deletingFilesAtFolder($projectName, $metadataContent, "export", true);
             unlink($metadata);
         }
-        $manager->deletingFilesAtBucket($projectName, "export", $bucketName);
+        $manager->deletingFilesAtBucket($projectName, $bucketName, "export");
         if ($this->checkBucket($bucketName)) $this->deleteBucket($bucketName);
             
         $path = __DIR__."/../../storage";

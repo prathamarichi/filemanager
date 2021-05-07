@@ -149,7 +149,7 @@ class Manager {
         return $data;
     }
 
-    public function deleteFile($projectName, $mode="standard", $filePath, $manipulation=true) {
+    public function deleteFile($projectName, $filePath, $mode="standard", $manipulation=true) {
         try {
             if ($manipulation) {
                 if (substr($filePath, 0, 1) === "/") $filePath = substr($filePath, 1);
@@ -246,11 +246,12 @@ class Manager {
         return $url;
     }
 
-    public function deletingFilesAtFolder($projectName, $mode="standard", $metadataContent, $recursive=false, $path="") {
+    //TODO: FIX THIS
+    public function deletingFilesAtFolder($projectName, $metadataContent, $mode="standard", $recursive=false, $path="") {
         $files = $metadataContent["files"];
         foreach ($files as $file) {
             try {
-                $this->deleteFile($projectName, $mode, $path."/".$file);
+                $this->deleteFile($projectName, $path."/".$file, $mode);
             } catch (\Exception $e) {
                 continue;
             }
@@ -260,18 +261,19 @@ class Manager {
             foreach ($metadataContent as $key => $content) {
                 if ($key === "files") continue;
                 $path = $path."/".$key;
-                $this->deletingFilesAtFolder($projectName, $mode="standard", $content, $recursive, $path);
+                $this->deletingFilesAtFolder($projectName, $content, $mode, $recursive, $path);
             }
         }
 
         return true;
     }
 
-    public function deletingFilesAtBucket($projectName, $mode="standard", $bucketName) {
+    //TODO: FIX THIS
+    public function deletingFilesAtBucket($projectName, $bucketName, $mode="standard") {
         $files = $this->getFiles($bucketName);
         foreach ($files as $file) {
             try {
-                $this->deleteFile($projectName, $mode, $file->name(), false);
+                $this->deleteFile($projectName, $file->name(), $mode, false);
             } catch (\Exception $e) {
                 continue;
             }
