@@ -14,7 +14,7 @@ class Manager {
 
         $this->_storage = new StorageClient([
             'projectId' => $this->_config->project_id,
-            'keyFilePath' => $this->_config->keyFilePath
+            'keyFile' => json_decode(json_encode($this->_config), true)
         ]);
     }
 
