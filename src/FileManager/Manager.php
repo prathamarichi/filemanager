@@ -246,7 +246,6 @@ class Manager {
         return $url;
     }
 
-    //TODO: FIX THIS
     public function deletingFilesAtFolder($projectName, $metadataContent, $mode="standard", $recursive=false, $path="") {
         $files = $metadataContent["files"];
         foreach ($files as $file) {
@@ -268,7 +267,6 @@ class Manager {
         return true;
     }
 
-    //TODO: FIX THIS
     public function deletingFilesAtBucket($projectName, $bucketName, $mode="standard") {
         $files = $this->getFiles($bucketName);
         foreach ($files as $file) {

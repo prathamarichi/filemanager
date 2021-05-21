@@ -4,7 +4,8 @@
   "type": "library",
   "require": {
     "php": ">=7.2.0",
-    "google/cloud-storage": "^1.20.1"
+    "google/cloud-storage": "^1.20.1",
+    "google/cloud-pubsub": "^1.29"
   },
   "license": "proprietary",
   "authors": [
@@ -21,10 +22,6 @@
       "src/FileManager/Manager.php",
       "src/FileManager/Project.php"
     ]
-  },
-  "require-dev": {
-    "symfony/console": " ^3.0",
-    "guzzlehttp/guzzle": "^7.0"
   },
   "minimum-stability": "dev"
 }
