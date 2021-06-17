@@ -124,6 +124,8 @@ class Manager {
         $data = array();
 
         try {
+            $projectName = \strtolower($projectName);
+
             $project = new Project($this->_config);
             $project->createProject($projectName);
     
@@ -140,6 +142,9 @@ class Manager {
                 "name" => $info["name"],
                 "contentType" => $info["contentType"],
                 "mediaLink" => $info["mediaLink"],
+                "size" => $info["size"],
+                "createdDate" => \strtotime($info["timeCreated"]),
+                "lastUpdatedDate" => \strtotime($info["updated"]),
                 "url" => $project->generateUrl($projectName, $info["name"])
             );
         } catch (\Exception $e) {
