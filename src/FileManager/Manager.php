@@ -25,7 +25,7 @@ class Manager {
         return $files;
     }
 
-    public function checkFile($projectName, $mode, $filePath) {
+    public function checkFile($projectName, $filePath, $mode="standard") {
         $project = new Project($this->_config);
         $project->createProject($projectName);
 
@@ -90,7 +90,7 @@ class Manager {
         }
     }
 
-    public function browse($projectName, $mode="standard", $filePath="") {
+    public function browse($projectName, $filePath="", $mode="standard") {
         $path = __DIR__."/../../storage/metadata";
         if (!file_exists($path)) mkdir($path, 0777, true);
 
@@ -120,7 +120,7 @@ class Manager {
 
     //todo: add folder and remove folder & its content(s)
 
-    public function getFile($projectName, $mode, $filePath) {
+    public function getFile($projectName, $filePath, $mode="standard") {
         $data = array();
 
         try {
@@ -207,7 +207,7 @@ class Manager {
         return true;
     }
 
-    public function uploadFile($projectName, $mode, $filePath, $targetPath, $targetFilename) {
+    public function uploadFile($projectName, $filePath, $targetPath, $targetFilename, $mode="standard") {
         $project = new Project($this->_config);
         $project->createProject($projectName);
 
