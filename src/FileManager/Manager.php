@@ -134,9 +134,28 @@ class Manager {
     
             if (substr($filePath, 0, 1) === "/") $filePath = substr($filePath, 1);
     
-            $bucket = $this->_storage->bucket($bucketName);
-            $object = $bucket->object($filePath);
-            $info = $object->info();
+            $try = 1;
+            do {
+                $continue = false;
+
+                try {
+                    $bucket = $this->_storage->bucket($bucketName);
+                    $object = $bucket->object($filePath);
+                    $info = $object->info();
+                } catch (\Exception $e) {
+                    $error = json_decode($e->getMessage());
+                    if ($error->error->code !== 404) {
+                        throw new \Exception('File not exist.');
+                    } else {
+                        if ($try >= 5) $this->deleteMetadata($projectName, $filePath);
+                        else {
+                            \sleep(1);
+                            $continue = true;
+                        }
+                    }
+                }
+                $try++;
+            } while ($continue);
 
             $data = array(
                 "name" => $info["name"],
@@ -164,28 +183,48 @@ class Manager {
                 } else $filePath = "";
             }
 
+            $projectName = \strtolower($projectName);
+
             $project = new Project($this->_config);
             $bucketName = $project->getBucketName($projectName);
             if ($mode === "export") $bucketName = $project->getBucketName($projectName, "export");
 
             $bucket = $this->_storage->bucket($bucketName);
-            $object = $bucket->object($filePath);
-            $object->delete();
+            try {
+                $object = $bucket->object($filePath);
+                $object->delete();
+            } catch (\Exception $e) {
+                $error = json_decode($e->getMessage());
+                if ($error->error->code !== 404) {
+                    throw new \Exception('File not exist.');
+                }
+            }
 
             //update metadata
-            $path = __DIR__."/../../storage/metadata";
-            if (!file_exists($path)) mkdir($path, 0777, true);
+            $this->deleteMetadata($projectName, $filePath);
+        } catch (\Exception $e) {
+            throw new \Exception('File not exist.');
+        }
+        
+        return true;
+    }
 
-            $metadata = $path."/".\strtolower($projectName).".json";
-            if ($mode === "export") $metadata = $path."/".\strtolower($projectName)."-export.json";
-            if (file_exists($metadata)) $metadataContent = json_decode(file_get_contents($metadata), true);
-            else $metadataContent = array("files" => array());
+    public function deleteMetadata($projectName, $filePath, $mode="standard") {
+        //update metadata
+        $path = __DIR__."/../../storage/metadata";
+        if (!file_exists($path)) mkdir($path, 0777, true);
 
-            //parsing content
-            if ($filePath === "" || $filePath === "/") {
-                throw new \Exception('Unable to delete root folder.');
-            } else {
-                $filename = "";
+        $metadata = $path."/".$projectName.".json";
+        if ($mode === "export") $metadata = $path."/".$projectName."-export.json";
+        if (file_exists($metadata)) $metadataContent = json_decode(file_get_contents($metadata), true);
+        else $metadataContent = array("files" => array());
+
+        //parsing content
+        if ($filePath === "" || $filePath === "/") {
+            throw new \Exception('Unable to delete root folder.');
+        } else {
+            $filename = "";
+            if (strpos($filePath, '/') !== false) {
                 $pathParts = explode('/', $filePath);
 
                 do {
@@ -195,15 +234,16 @@ class Manager {
                 } while ($firstElement === "");
                 
                 $filePath = $this->buildPath($filePath, $pathParts);
-                $metadataContent = $this->removingPath($metadataContent, $filePath, $filename);
-
-                $metadataContent = json_encode($metadataContent);
-                file_put_contents($metadata, $metadataContent);
+            } else {
+                $filename = $filePath;
+                $filePath = null;
             }
-        } catch (\Exception $e) {
-            throw new \Exception('File not exist.');
+
+            $metadataContent = $this->removingPath($metadataContent, $filePath, $filename);
+            $metadataContent = json_encode($metadataContent);
+            file_put_contents($metadata, $metadataContent);
         }
-        
+
         return true;
     }
 
@@ -317,14 +357,18 @@ class Manager {
     }
 
     protected function removingPath($metadataContent, $targetPath, $filename) {
-        foreach ($targetPath as $key => $path) {
-            if ($key == "0") {
-                if (!array_key_exists($path, $metadataContent)) throw new \Exception('Wrong path.');
-                if (($pos = array_search($filename, $metadataContent[$path]["files"])) !== false) unset($metadataContent[$path]["files"][$pos]);
-            } else {
-                if (!array_key_exists($key, $metadataContent)) throw new \Exception('Wrong path.');
-                $metadataContent[$key] = $this->removingPath($metadataContent[$key], $path, $filename);
+        if ($targetPath) {
+            foreach ($targetPath as $key => $path) {
+                if ($key == "0") {
+                    if (!array_key_exists($path, $metadataContent)) throw new \Exception('Wrong path.');
+                    if (($pos = array_search($filename, $metadataContent[$path]["files"])) !== false) unset($metadataContent[$path]["files"][$pos]);
+                } else {
+                    if (!array_key_exists($key, $metadataContent)) throw new \Exception('Wrong path.');
+                    $metadataContent[$key] = $this->removingPath($metadataContent[$key], $path, $filename);
+                }
             }
+        } else {
+            if (($pos = array_search($filename, $metadataContent["files"])) !== false) unset($metadataContent["files"][$pos]);
         }
 
         return $metadataContent;
