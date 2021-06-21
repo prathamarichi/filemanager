@@ -345,7 +345,7 @@ class Manager {
         foreach ($targetPath as $key => $path) {
             if ($key == "0") {
                 if (!array_key_exists($path, $metadataContent)) $metadataContent[$path] = array("files" => array());
-                if (in_array($targetFilename, $metadataContent[$path]["files"])) throw new \Exception('File already exist at cloud, delete first.');
+                // if (in_array($targetFilename, $metadataContent[$path]["files"])) throw new \Exception('File already exist at cloud, delete first.');
                 $metadataContent[$path]["files"][] = $targetFilename;
             } else {
                 if (!array_key_exists($key, $metadataContent)) $metadataContent[$key] = array("files" => array());
