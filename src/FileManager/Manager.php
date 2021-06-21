@@ -266,7 +266,7 @@ class Manager {
         $targetPathRaw = $targetPath;
         if ($targetPath === "" || $targetPath === "/") {
             $targetPathRaw = "/";
-            if (in_array($targetFilename, $metadataContent["files"])) throw new \Exception('File already exist at cloud, delete first.');
+            // if (in_array($targetFilename, $metadataContent["files"])) throw new \Exception('File already exist at cloud, delete first.');
             $metadataContent["files"][] = $targetFilename;
         } else {
             $targetPath = $this->buildPath($targetPath);
