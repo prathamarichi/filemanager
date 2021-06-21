@@ -108,7 +108,10 @@ class Project {
             file_put_contents($file, $content);
         }
 
-        return true;
+        $metadata = new Metadata();
+        $metadataContent = $metadata->getProjectMeta($projectName);
+
+        return $metadataContent;
     }
 
     public function deleteProject($projectName) {
@@ -146,6 +149,57 @@ class Project {
 
             $content = json_encode($content);
             file_put_contents($file, $content);
+        }
+
+        return true;
+    }
+
+    public function checkFolder($projectName, $path) {
+        $path = strtolower($path);
+        
+        $metadata = new Metadata();
+        $exist = $metadata->checkFolderMeta($projectName, $path);
+
+        return $exist;
+    }
+
+    public function createFolder($projectName, $path) {
+        $path = strtolower($path);
+
+        $metadata = new Metadata();
+        $metadataContent = $metadata->createFolderMeta($projectName, $path);
+
+        return $metadataContent;
+    }
+
+    public function deleteFolder($projectName, $path) {
+        $path = strtolower($path);
+        
+        $metadata = new Metadata();
+        $exist = $metadata->checkFolderMeta($projectName, $path);
+        if (!$exist) return false;
+    
+        $contents = $metadata->browse($projectName, $path);
+        $contents = $this->deleteContents($projectName, $path, $contents);
+
+        $metadataContent = $metadata->getProjectMeta($projectName);
+        $metadataContent = $metadata->deleteFolderMeta($projectName, $path);
+
+        return $metadataContent;
+    }
+
+    public function deleteContents($projectName, $path, $contents) {
+        foreach ($contents["files"] as $file) {
+            $filePath = $path."/".$file;
+            $manager = new Manager($this->_config);
+            $manager->deleteFile($projectName, $filePath);
+        }
+
+        foreach ($contents["folders"] as $folder) {
+            $metadata = new Metadata();
+            $innerPath = $path."/".$folder;
+            $innerContents = $metadata->browse($projectName, $innerPath);
+            $this->deleteContents($projectName, $innerPath, $innerContents);
         }
 
         return true;

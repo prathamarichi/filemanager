@@ -19,7 +19,8 @@
     },
     "files": [
       "src/FileManager/Manager.php",
-      "src/FileManager/Project.php"
+      "src/FileManager/Project.php",
+      "src/FileManager/Metadata.php"
     ]
   },
   "require-dev": {
