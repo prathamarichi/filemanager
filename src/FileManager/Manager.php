@@ -267,7 +267,7 @@ class Manager {
         if ($targetPath === "" || $targetPath === "/") {
             $targetPathRaw = "/";
             // if (in_array($targetFilename, $metadataContent["files"])) throw new \Exception('File already exist at cloud, delete first.');
-            $metadataContent["files"][] = $targetFilename;
+            if (!in_array($targetFilename, $metadataContent["files"])) $metadataContent["files"][] = $targetFilename;
         } else {
             $targetPath = $this->buildPath($targetPath);
             $metadataContent = $this->processingPath($metadataContent, $targetPath, $targetFilename);
@@ -346,7 +346,7 @@ class Manager {
             if ($key == "0") {
                 if (!array_key_exists($path, $metadataContent)) $metadataContent[$path] = array("files" => array());
                 // if (in_array($targetFilename, $metadataContent[$path]["files"])) throw new \Exception('File already exist at cloud, delete first.');
-                $metadataContent[$path]["files"][] = $targetFilename;
+                if (!in_array($targetFilename, $metadataContent[$path]["files"])) $metadataContent[$path]["files"][] = $targetFilename;
             } else {
                 if (!array_key_exists($key, $metadataContent)) $metadataContent[$key] = array("files" => array());
                 $metadataContent[$key] = $this->processingPath($metadataContent[$key], $path, $targetFilename);
