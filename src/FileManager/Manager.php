@@ -91,6 +91,7 @@ class Manager {
     }
 
     public function browse($projectName, $filePath="", $mode="standard") {
+        $filePath = \strtolower($filePath);
         $path = __DIR__."/../../storage/metadata";
         if (!file_exists($path)) mkdir($path, 0777, true);
 

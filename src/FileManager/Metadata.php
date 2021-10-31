@@ -95,14 +95,14 @@ class Metadata {
         return $metadataContent;
     }
 
-
-
-
     public function getProjectMeta($projectName) {
         $projectName = \strtolower($projectName);
         
+        $path = __DIR__."/../../storage/metadata/";
+        if (!file_exists($path)) mkdir($path, 0777, true);
+
         //delete files first before deleting bucket
-        $metadata = __DIR__."/../../storage/metadata/".\strtolower($projectName).".json";
+        $metadata = $path.\strtolower($projectName).".json";
         
         if (file_exists($metadata)) {
             $metadataContent = json_decode(file_get_contents($metadata), true);
