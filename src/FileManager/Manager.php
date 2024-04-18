@@ -4,12 +4,14 @@ namespace FileManager;
 
 use Google\Cloud\Storage\StorageClient;
 
-class Manager {
+class Manager
+{
 
     public $_config = false;
     public $_storage = false;
 
-    public function __construct($config) {
+    public function __construct($config)
+    {
         $this->_config = $config;
 
         $this->_storage = new StorageClient([
@@ -18,14 +20,16 @@ class Manager {
         ]);
     }
 
-    public function getFiles($bucketName) {
+    public function getFiles($bucketName)
+    {
         $bucket = $this->_storage->bucket($bucketName);
         $files = $bucket->objects();
-        
+
         return $files;
     }
 
-    public function checkFile($projectName, $filePath, $mode="standard") {
+    public function checkFile($projectName, $filePath, $mode = "standard")
+    {
         $project = new Project($this->_config);
         $project->createProject($projectName);
 
@@ -90,13 +94,14 @@ class Manager {
         }
     }
 
-    public function browse($projectName, $filePath="", $mode="standard") {
+    public function browse($projectName, $filePath = "", $mode = "standard")
+    {
         $filePath = \strtolower($filePath);
-        $path = __DIR__."/../../storage/metadata";
+        $path = __DIR__ . "/../../storage/metadata";
         if (!file_exists($path)) mkdir($path, 0777, true);
 
-        $metadata = $path."/".\strtolower($projectName).".json";
-        if ($mode === "export") $metadata = $path."/".\strtolower($projectName)."-export.json";
+        $metadata = $path . "/" . \strtolower($projectName) . ".json";
+        if ($mode === "export") $metadata = $path . "/" . \strtolower($projectName) . "-export.json";
         if (file_exists($metadata)) $metadataContent = json_decode(file_get_contents($metadata), true);
         else $metadataContent = array("files" => array());
 
@@ -115,13 +120,14 @@ class Manager {
         $folders = array();
         foreach ($selectedFolder as $key => $data) $folders[] = $key;
         $contents["folders"] = $folders;
-        
+
         return $contents;
     }
 
     //todo: add folder and remove folder & its content(s)
 
-    public function getFile($projectName, $filePath, $mode="standard") {
+    public function getFile($projectName, $filePath, $mode = "standard")
+    {
         $data = array();
 
         try {
@@ -129,12 +135,12 @@ class Manager {
 
             $project = new Project($this->_config);
             $project->createProject($projectName);
-    
+
             $bucketName = $project->getBucketName($projectName);
             if ($mode === "export") $bucketName = $project->getBucketName($projectName, "export");
-    
+
             if (substr($filePath, 0, 1) === "/") $filePath = substr($filePath, 1);
-    
+
             $try = 1;
             do {
                 $continue = false;
@@ -157,7 +163,6 @@ class Manager {
                 }
                 $try++;
             } while ($continue);
-
             $data = array(
                 "name" => $info["name"],
                 "contentType" => $info["contentType"],
@@ -170,11 +175,12 @@ class Manager {
         } catch (\Exception $e) {
             throw new \Exception('File not exist.');
         }
-        
+
         return $data;
     }
 
-    public function deleteFile($projectName, $filePath, $mode="standard", $manipulation=true) {
+    public function deleteFile($projectName, $filePath, $mode = "standard", $manipulation = true)
+    {
         try {
             if ($manipulation) {
                 if (substr($filePath, 0, 1) === "/") $filePath = substr($filePath, 1);
@@ -206,17 +212,18 @@ class Manager {
         } catch (\Exception $e) {
             throw new \Exception('File not exist.');
         }
-        
+
         return true;
     }
 
-    public function deleteMetadata($projectName, $filePath, $mode="standard") {
+    public function deleteMetadata($projectName, $filePath, $mode = "standard")
+    {
         //update metadata
-        $path = __DIR__."/../../storage/metadata";
+        $path = __DIR__ . "/../../storage/metadata";
         if (!file_exists($path)) mkdir($path, 0777, true);
 
-        $metadata = $path."/".$projectName.".json";
-        if ($mode === "export") $metadata = $path."/".$projectName."-export.json";
+        $metadata = $path . "/" . $projectName . ".json";
+        if ($mode === "export") $metadata = $path . "/" . $projectName . "-export.json";
         if (file_exists($metadata)) $metadataContent = json_decode(file_get_contents($metadata), true);
         else $metadataContent = array("files" => array());
 
@@ -229,11 +236,11 @@ class Manager {
                 $pathParts = explode('/', $filePath);
 
                 do {
-                    if(empty($pathParts)) break;
+                    if (empty($pathParts)) break;
                     $firstElement = array_pop($pathParts);
                     if ($firstElement !== "") $filename = $firstElement;
                 } while ($firstElement === "");
-                
+
                 $filePath = $this->buildPath($filePath, $pathParts);
             } else {
                 $filename = $filePath;
@@ -248,19 +255,81 @@ class Manager {
         return true;
     }
 
-    public function uploadFile($projectName, $filePath, $targetPath, $targetFilename, $mode="standard") {
+    private function validateFilename($filename){
+        $decodedString = urldecode($filename);
+        $parts = pathinfo($decodedString);
+        $filename = $parts['filename'];
+        $extension = isset($parts['extension']) ? '.' . $parts['extension'] : '';
+        $filename = str_replace(" ", "", $filename);
+        $filename = preg_replace("/[@*\.]/", "", $filename);
+        $filename = preg_replace("/[^a-zA-Z0-9\-_]/", "", $filename);
+        return $filename . $extension;
+    }
+
+    public function uploadFile($projectName, $filePath, $targetPath, $targetFilename, $mode = "standard")
+    {
         $project = new Project($this->_config);
         $project->createProject($projectName);
+
+        $targetFilename = $this->validateFilename($targetFilename);
+        $extension = pathinfo($targetFilename, PATHINFO_EXTENSION);
+        $filename  = pathinfo($targetFilename, PATHINFO_FILENAME);
+
+        if (!is_dir(base_path('public') . "/temp/")) {
+            mkdir(base_path('public') . "/temp/");
+        }
 
         $bucketName = $project->getBucketName($projectName);
         if ($mode === "export") $bucketName = $project->getBucketName($projectName, "export");
         if (!file_exists($filePath)) throw new \Exception('File not exist.');
-        
-        $path = __DIR__."/../../storage/metadata";
+
+        $path = __DIR__ . "/../../storage/metadata";
         if (!file_exists($path)) mkdir($path, 0777, true);
 
-        $metadata = $path."/".\strtolower($projectName).".json";
-        if ($mode === "export") $metadata = $path."/".\strtolower($projectName)."-export.json";
+        $localAsset = base_path('public') . "/temp/" . $filename . "." . $extension;
+        if ($extension == "jpg" || $extension == "jpeg" || $extension == "png" || $extension == "bmp") {
+            $targetFilename = $filename . ".webp";
+            $localAsset = base_path('public') . "/temp/" . $targetFilename;
+            try {
+                if (function_exists('imagewebp')) {
+                    switch ($extension) {
+                        case "jpg":
+                        case "jpeg":
+                            $image = imagecreatefromjpeg($filePath);
+                            break;
+                        case "png": //IMAGETYPE_PNG
+                            $image = imagecreatefrompng($filePath);
+                            imagepalettetotruecolor($image);
+                            imagealphablending($image, true);
+                            imagesavealpha($image, true);
+                            break;
+                        case "bmp": // IMAGETYPE_BMP
+                            $image = imagecreatefrombmp($filePath);
+                            break;
+                        default:
+                            return false;
+                    }
+                    // Save the image
+                    $result = \imagewebp($image, $localAsset, 100);
+                    if (!$result) {
+                        throw new \Exception("failed");
+                    }
+                    // Free up memory
+                    imagedestroy($image);
+                    $extension = "webp";
+
+
+                }
+            } catch (\Exception $e) {
+                $targetFilename = $filename . "." . $extension;
+                $localAsset = base_path('public') . "/temp/" . $targetFilename;
+            }
+        }
+        $content = file_get_contents($filePath);
+        file_put_contents($localAsset, $content);
+
+        $metadata = $path . "/" . \strtolower($projectName) . ".json";
+        if ($mode === "export") $metadata = $path . "/" . \strtolower($projectName) . "-export.json";
         if (file_exists($metadata)) $metadataContent = json_decode(file_get_contents($metadata), true);
         else $metadataContent = array("files" => array());
 
@@ -276,27 +345,28 @@ class Manager {
 
         if ($targetPathRaw !== "/") {
             if (substr($targetPathRaw, 0, 1) === "/") $targetPathRaw = substr($targetPathRaw, 1);
-            if (substr($targetPathRaw, -1) !== "/") $targetPathRaw = $targetPathRaw."/";
+            if (substr($targetPathRaw, -1) !== "/") $targetPathRaw = $targetPathRaw . "/";
         } else $targetPathRaw = "";
 
-        $file = fopen($filePath, 'r');
-        $objectName = $targetPathRaw.$targetFilename;
+
+        $file = fopen($localAsset, 'r');
+        $objectName = $targetPathRaw . $targetFilename;
         $bucket = $this->_storage->bucket($bucketName);
         $object = $bucket->upload($file, ['name' => $objectName]);
         $object->update(['acl' => []], ['predefinedAcl' => 'PUBLICREAD']);
 
         $metadataContent = json_encode($metadataContent);
         file_put_contents($metadata, $metadataContent);
-
-        $url = $project->generateUrl($projectName, $targetPathRaw.$targetFilename);
+        $url = $project->generateUrl($projectName, $targetPathRaw . $targetFilename);
         return $url;
     }
 
-    public function deletingFilesAtFolder($projectName, $metadataContent, $mode="standard", $recursive=false, $path="") {
+    public function deletingFilesAtFolder($projectName, $metadataContent, $mode = "standard", $recursive = false, $path = "")
+    {
         $files = $metadataContent["files"];
         foreach ($files as $file) {
             try {
-                $this->deleteFile($projectName, $path."/".$file, $mode);
+                $this->deleteFile($projectName, $path . "/" . $file, $mode);
             } catch (\Exception $e) {
                 continue;
             }
@@ -305,7 +375,7 @@ class Manager {
         if ($recursive === true) {
             foreach ($metadataContent as $key => $content) {
                 if ($key === "files") continue;
-                $path = $path."/".$key;
+                $path = $path . "/" . $key;
                 $this->deletingFilesAtFolder($projectName, $content, $mode, $recursive, $path);
             }
         }
@@ -313,7 +383,8 @@ class Manager {
         return true;
     }
 
-    public function deletingFilesAtBucket($projectName, $bucketName, $mode="standard") {
+    public function deletingFilesAtBucket($projectName, $bucketName, $mode = "standard")
+    {
         $files = $this->getFiles($bucketName);
         foreach ($files as $file) {
             try {
@@ -326,7 +397,8 @@ class Manager {
         return true;
     }
 
-    protected function accessingPath($metadataContent, $targetPath) {
+    protected function accessingPath($metadataContent, $targetPath)
+    {
         $selectedFolder = false;
 
         foreach ($targetPath as $key => $path) {
@@ -342,7 +414,8 @@ class Manager {
         return $selectedFolder;
     }
 
-    protected function processingPath($metadataContent, $targetPath, $targetFilename) {
+    protected function processingPath($metadataContent, $targetPath, $targetFilename)
+    {
         foreach ($targetPath as $key => $path) {
             if ($key == "0") {
                 if (!array_key_exists($path, $metadataContent)) $metadataContent[$path] = array("files" => array());
@@ -357,7 +430,8 @@ class Manager {
         return $metadataContent;
     }
 
-    protected function removingPath($metadataContent, $targetPath, $filename) {
+    protected function removingPath($metadataContent, $targetPath, $filename)
+    {
         if ($targetPath) {
             foreach ($targetPath as $key => $path) {
                 if ($key == "0") {
@@ -375,11 +449,12 @@ class Manager {
         return $metadataContent;
     }
 
-    protected function buildPath($pathString, $pathParts=false) {
+    protected function buildPath($pathString, $pathParts = false)
+    {
         if (!$pathParts) $pathParts = explode('/', $pathString);
-    
+
         do {
-            if(empty($pathParts)) break;
+            if (empty($pathParts)) break;
             $firstElement = array_pop($pathParts);
             if ($firstElement !== "") $path = [$firstElement];
         } while ($firstElement === "");
@@ -388,7 +463,7 @@ class Manager {
             if ($pathPart === "") continue;
             $path = [$pathPart => $path];
         }
-        
+
         return $path;
     }
 }

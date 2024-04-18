@@ -8,7 +8,7 @@ class Metadata {
         if ($pathString === "/") $pathString = "";
         if ($pathString === "") return false;
         if (!$pathParts) $pathParts = explode('/', $pathString);
-    
+
         do {
             if(empty($pathParts)) break;
             $firstElement = array_pop($pathParts);
@@ -19,7 +19,7 @@ class Metadata {
             if ($pathPart === "") continue;
             $path = [$pathPart => $path];
         }
-        
+
         return $path;
     }
 
@@ -81,6 +81,9 @@ class Metadata {
     protected function processingPath($metadataContent, $buildPath, $targetFilename=false) {
         foreach ($buildPath as $key => $path) {
             if ($key == "0") {
+                if (!is_array($metadataContent)) {
+                    $metadataContent = json_decode(json_encode($metadataContent), true);
+                }
                 if (!array_key_exists($path, $metadataContent)) $metadataContent[$path] = array("files" => array());
                 if ($targetFilename) {
                     if (in_array($targetFilename, $metadataContent[$path]["files"])) throw new \Exception('File already exist at cloud, delete first.');
@@ -97,13 +100,13 @@ class Metadata {
 
     public function getProjectMeta($projectName) {
         $projectName = \strtolower($projectName);
-        
+
         $path = __DIR__."/../../storage/metadata/";
         if (!file_exists($path)) mkdir($path, 0777, true);
 
         //delete files first before deleting bucket
         $metadata = $path.\strtolower($projectName).".json";
-        
+
         if (file_exists($metadata)) {
             $metadataContent = json_decode(file_get_contents($metadata), true);
         } else {
@@ -136,7 +139,7 @@ class Metadata {
 
         $buildPath = $this->buildPath($path);
         $metadataContent = $this->processingPath($metadataContent, $buildPath);
-        
+
         $metadataContent = json_encode($metadataContent);
         file_put_contents($metadata, $metadataContent);
         $metadataContent = json_decode($metadataContent);
@@ -186,7 +189,7 @@ class Metadata {
         $folders = array();
         foreach ($selectedFolder as $key => $data) $folders[] = $key;
         $contents["folders"] = $folders;
-        
+
         return $contents;
     }
 }
