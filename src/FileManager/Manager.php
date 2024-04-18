@@ -275,9 +275,8 @@ class Manager
         $extension = pathinfo($targetFilename, PATHINFO_EXTENSION);
         $filename  = pathinfo($targetFilename, PATHINFO_FILENAME);
 
-        if (!is_dir(base_path('public') . "/temp/")) {
-            mkdir(base_path('public') . "/temp/");
-        }
+        $tempFolder = __DIR__ . "/../../storage/temp";
+        if (!file_exists($tempFolder)) mkdir($tempFolder, 0777, true);
 
         $bucketName = $project->getBucketName($projectName);
         if ($mode === "export") $bucketName = $project->getBucketName($projectName, "export");
@@ -286,10 +285,10 @@ class Manager
         $path = __DIR__ . "/../../storage/metadata";
         if (!file_exists($path)) mkdir($path, 0777, true);
 
-        $localAsset = base_path('public') . "/temp/" . $filename . "." . $extension;
+        $localAsset = $tempFolder . "/" . $filename . "." . $extension;
         if ($extension == "jpg" || $extension == "jpeg" || $extension == "png" || $extension == "bmp") {
             $targetFilename = $filename . ".webp";
-            $localAsset = base_path('public') . "/temp/" . $targetFilename;
+            $localAsset = $tempFolder . "/" . $targetFilename;
             try {
                 if (function_exists('imagewebp')) {
                     switch ($extension) {
@@ -317,12 +316,10 @@ class Manager
                     // Free up memory
                     imagedestroy($image);
                     $extension = "webp";
-
-
                 }
             } catch (\Exception $e) {
                 $targetFilename = $filename . "." . $extension;
-                $localAsset = base_path('public') . "/temp/" . $targetFilename;
+                $localAsset = $tempFolder . "/" . $targetFilename;
             }
         }
         $content = file_get_contents($filePath);
@@ -358,6 +355,8 @@ class Manager
         $metadataContent = json_encode($metadataContent);
         file_put_contents($metadata, $metadataContent);
         $url = $project->generateUrl($projectName, $targetPathRaw . $targetFilename);
+        \unlink($localAsset);
+
         return $url;
     }
 
