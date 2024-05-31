@@ -35,6 +35,7 @@ class Manager
 
         $bucketName = $project->getBucketName($projectName);
         if ($mode === "export") $bucketName = $project->getBucketName($projectName, "export");
+        else if ($mode === "transaction") $bucketName = $project->getBucketName($projectName, "transaction");
 
         if (substr($filePath, 0, 1) === "/") $filePath = substr($filePath, 1);
 
@@ -102,6 +103,7 @@ class Manager
 
         $metadata = $path . "/" . \strtolower($projectName) . ".json";
         if ($mode === "export") $metadata = $path . "/" . \strtolower($projectName) . "-export.json";
+        else if ($mode === "transaction") $metadata = $path . "/" . \strtolower($projectName) . "-transaction.json";
         if (file_exists($metadata)) $metadataContent = json_decode(file_get_contents($metadata), true);
         else $metadataContent = array("files" => array());
 
@@ -138,6 +140,7 @@ class Manager
 
             $bucketName = $project->getBucketName($projectName);
             if ($mode === "export") $bucketName = $project->getBucketName($projectName, "export");
+            else if ($mode === "transaction") $bucketName = $project->getBucketName($projectName, "transaction");
 
             if (substr($filePath, 0, 1) === "/") $filePath = substr($filePath, 1);
 
@@ -195,6 +198,7 @@ class Manager
             $project = new Project($this->_config);
             $bucketName = $project->getBucketName($projectName);
             if ($mode === "export") $bucketName = $project->getBucketName($projectName, "export");
+            else if ($mode === "transaction") $bucketName = $project->getBucketName($projectName, "transaction");
 
             $bucket = $this->_storage->bucket($bucketName);
             try {
@@ -224,6 +228,7 @@ class Manager
 
         $metadata = $path . "/" . $projectName . ".json";
         if ($mode === "export") $metadata = $path . "/" . $projectName . "-export.json";
+        else if ($mode === "transaction") $metadata = $path . "/" . $projectName . "-transaction.json";
         if (file_exists($metadata)) $metadataContent = json_decode(file_get_contents($metadata), true);
         else $metadataContent = array("files" => array());
 
@@ -280,6 +285,7 @@ class Manager
 
         $bucketName = $project->getBucketName($projectName);
         if ($mode === "export") $bucketName = $project->getBucketName($projectName, "export");
+        else if ($mode === "transaction") $bucketName = $project->getBucketName($projectName, "transaction");
         if (!file_exists($filePath)) throw new \Exception('File not exist.');
 
         $path = __DIR__ . "/../../storage/metadata";
@@ -327,6 +333,7 @@ class Manager
 
         $metadata = $path . "/" . \strtolower($projectName) . ".json";
         if ($mode === "export") $metadata = $path . "/" . \strtolower($projectName) . "-export.json";
+        else if ($mode === "transaction") $metadata = $path . "/" . \strtolower($projectName) . "-transaction.json";
         if (file_exists($metadata)) $metadataContent = json_decode(file_get_contents($metadata), true);
         else $metadataContent = array("files" => array());
 
@@ -348,13 +355,41 @@ class Manager
 
         $file = fopen($localAsset, 'r');
         $objectName = $targetPathRaw . $targetFilename;
-        $bucket = $this->_storage->bucket($bucketName);
+        if (!$project->checkBucket($bucketName)) {
+            if ($mode === "transaction") {
+                $bucket = $project->_storage->createBucket($bucketName, array("storageClass" => "NEARLINE"));
+                $project->addLabelToBucket($bucket->name(), "tag", "transaction");
+
+                $lifecycle = Bucket::lifecycle()
+                ->addDeleteRule([
+                    'age' => 31
+                ]);
+
+                $bucket->update([
+                    'lifecycle' => $lifecycle
+                ]);
+            } else if ($mode === "export") {
+                $bucket = $project->_storage->createBucket($bucketName, array("storageClass" => "NEARLINE"));
+                $project->addLabelToBucket($bucket->name(), "tag", "report");
+
+                $lifecycle = Bucket::lifecycle()
+                ->addDeleteRule([
+                    'age' => 7
+                ]);
+
+                $bucket->update([
+                    'lifecycle' => $lifecycle
+                ]);
+            }
+        } else {
+            $bucket = $this->_storage->bucket($bucketName);
+        }
         $object = $bucket->upload($file, ['name' => $objectName]);
         $object->update(['acl' => []], ['predefinedAcl' => 'PUBLICREAD']);
 
         $metadataContent = json_encode($metadataContent);
         file_put_contents($metadata, $metadataContent);
-        $url = $project->generateUrl($projectName, $targetPathRaw . $targetFilename);
+        $url = $project->generateUrl($projectName, $targetPathRaw . $targetFilename, $mode);
         \unlink($localAsset);
 
         return $url;
