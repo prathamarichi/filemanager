@@ -153,7 +153,7 @@ class Project
 
             $lifecycle = Bucket::lifecycle()
                 ->addDeleteRule([
-                    'age' => 31
+                    'age' => 7
                 ]);
 
             $bucket->update([
@@ -191,7 +191,7 @@ class Project
             $bucket = $this->_storage->createBucket($bucketName, array("storageClass" => "NEARLINE"));
             $lifecycle = Bucket::lifecycle()
                 ->addDeleteRule([
-                    'age' => 31
+                    'age' => 7
                 ]);
 
             $bucket->update([

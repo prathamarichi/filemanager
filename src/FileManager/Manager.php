@@ -362,7 +362,7 @@ class Manager
 
                 $lifecycle = Bucket::lifecycle()
                 ->addDeleteRule([
-                    'age' => 31
+                    'age' => 7
                 ]);
 
                 $bucket->update([
