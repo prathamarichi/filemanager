@@ -33,9 +33,25 @@ class Project
         return $url;
     }
 
-    public function getBucketName($projectName, $extra = false)
+    public function generateUrlGameAsset($projectName, $targetFilename, $mode = "standard")
+    {
+        $bucketName = $this->getBucketName($projectName, false, true);
+        if ($mode == "standard") {
+            $url = "https://storage.googleapis.com/" . $bucketName . "/" . $targetFilename;
+        } else {
+            $url = "https://storage.googleapis.com/" . $bucketName . "-" . $mode . "/" . $targetFilename;
+        }
+
+        return $url;
+    }
+
+
+    public function getBucketName($projectName, $extra = false, $gameAssets = false)
     {
         $bucketName = $this->_config->project_id . "-" . $projectName;
+        if ($gameAssets === true) {
+            $bucketName = $projectName;
+        }
         if ($extra) $bucketName .= "-" . $extra;
 
         return $bucketName;
@@ -121,13 +137,13 @@ class Project
         foreach ($projects as $projectName) {
             $bucketName = $this->getBucketName($projectName);
             if (!$this->checkBucket($bucketName)) {
-                $bucket = $this->_storage->createBucket($bucketName);
+                $bucket = $this->_storage->createBucket($bucketName, array('location' => 'ASIA-SOUTHEAST1'));
                 $this->addLabelToBucket($bucket->name(), "tag", "standard");
             }
 
             $bucketName = $this->getBucketName($projectName, "export");
             if (!$this->checkBucket($bucketName)) {
-                $bucket = $this->_storage->createBucket($bucketName, array("storageClass" => "NEARLINE"));
+                $bucket = $this->_storage->createBucket($bucketName, array("storageClass" => "NEARLINE", 'location' => 'ASIA-SOUTHEAST1'));
                 $this->addLabelToBucket($bucket->name(), "tag", "report");
             } else {
                 $bucket = $this->_storage->bucket($bucketName);
@@ -144,7 +160,7 @@ class Project
 
             $bucketName = $this->getBucketName($projectName, "transaction");
             if (!$this->checkBucket($bucketName)) {
-                $bucket = $this->_storage->createBucket($bucketName, array("storageClass" => "NEARLINE"));
+                $bucket = $this->_storage->createBucket($bucketName, array("storageClass" => "NEARLINE", 'location' => 'ASIA-SOUTHEAST1'));
 
                 $this->addLabelToBucket($bucket->name(), "tag", "transaction");
             } else {
@@ -153,7 +169,7 @@ class Project
 
             $lifecycle = Bucket::lifecycle()
                 ->addDeleteRule([
-                    'age' => 7
+                    'age' => 31
                 ]);
 
             $bucket->update([
@@ -164,17 +180,75 @@ class Project
         return true;
     }
 
+    public function createProjectGame($projectName)
+    {
+        if ($projectName == "") {
+            $projectName = "continue88";
+        }
+        $bucketName = $this->getBucketName($projectName, false, true);
+        if (!$this->checkBucket($bucketName)) {
+            $bucket = $this->_storage->createBucket($bucketName, array('location' => 'ASIA-SOUTHEAST1'));
+            $this->addLabelToBucket($bucket->name(), "tag", "standard");
+
+            $bucketName = $this->getBucketName($projectName, "export", true);
+            if ($this->checkBucket($bucketName)) $this->deleteBucket($bucketName);
+
+            $bucket = $this->_storage->createBucket($bucketName, array("storageClass" => "NEARLINE", 'location' => 'ASIA-SOUTHEAST1'));
+            $lifecycle = Bucket::lifecycle()
+                ->addDeleteRule([
+                    'age' => 7
+                ]);
+
+            $bucket->update([
+                'lifecycle' => $lifecycle
+            ]);
+            $this->addLabelToBucket($bucket->name(), "tag", "report");
+
+            $bucketName = $this->getBucketName($projectName, "transaction", true);
+            if ($this->checkBucket($bucketName)) $this->deleteBucket($bucketName);
+
+            $bucket = $this->_storage->createBucket($bucketName, array("storageClass" => "NEARLINE", 'location' => 'ASIA-SOUTHEAST1'));
+            $lifecycle = Bucket::lifecycle()
+                ->addDeleteRule([
+                    'age' => 31
+                ]);
+
+            $bucket->update([
+                'lifecycle' => $lifecycle
+            ]);
+            $this->addLabelToBucket($bucket->name(), "tag", "transaction");
+
+            $path = __DIR__ . "/../../storage";
+            if (!file_exists($path)) mkdir($path, 0777, true);
+
+            $file = $path . "/projects.json";
+            if (file_exists($file)) $content = json_decode(file_get_contents($file), true);
+            else $content = array();
+
+            if (!in_array($projectName, $content)) $content[] = $projectName;
+
+            $content = json_encode($content);
+            file_put_contents($file, $content);
+        }
+
+        $metadata = new Metadata();
+        $metadataContent = $metadata->getProjectMeta($projectName);
+
+        return $metadataContent;
+    }
+
+
     public function createProject($projectName)
     {
-        $bucketName = $this->getBucketName($projectName);
+        $bucketName = $this->getBucketName($projectName, false);
         if (!$this->checkBucket($bucketName)) {
-            $bucket = $this->_storage->createBucket($bucketName);
+            $bucket = $this->_storage->createBucket($bucketName, array('location' => 'ASIA-SOUTHEAST1'));
             $this->addLabelToBucket($bucket->name(), "tag", "standard");
 
             $bucketName = $this->getBucketName($projectName, "export");
             if ($this->checkBucket($bucketName)) $this->deleteBucket($bucketName);
 
-            $bucket = $this->_storage->createBucket($bucketName, array("storageClass" => "NEARLINE"));
+            $bucket = $this->_storage->createBucket($bucketName, array("storageClass" => "NEARLINE", 'location' => 'ASIA-SOUTHEAST1'));
             $lifecycle = Bucket::lifecycle()
                 ->addDeleteRule([
                     'age' => 7
@@ -188,10 +262,10 @@ class Project
             $bucketName = $this->getBucketName($projectName, "transaction");
             if ($this->checkBucket($bucketName)) $this->deleteBucket($bucketName);
 
-            $bucket = $this->_storage->createBucket($bucketName, array("storageClass" => "NEARLINE"));
+            $bucket = $this->_storage->createBucket($bucketName, array("storageClass" => "NEARLINE", 'location' => 'ASIA-SOUTHEAST1'));
             $lifecycle = Bucket::lifecycle()
                 ->addDeleteRule([
-                    'age' => 7
+                    'age' => 31
                 ]);
 
             $bucket->update([

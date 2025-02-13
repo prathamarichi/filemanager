@@ -260,7 +260,8 @@ class Manager
         return true;
     }
 
-    private function validateFilename($filename){
+    private function validateFilename($filename)
+    {
         $decodedString = urldecode($filename);
         $parts = pathinfo($decodedString);
         $filename = $parts['filename'];
@@ -269,6 +270,104 @@ class Manager
         $filename = preg_replace("/[@*\.]/", "", $filename);
         $filename = preg_replace("/[^a-zA-Z0-9\-_]/", "", $filename);
         return $filename . $extension;
+    }
+
+    public function uploadFileGame($projectName, $filePath, $targetPath, $targetFilename)
+    {
+        $project = new Project($this->_config);
+        if ($projectName == "") {
+            $projectName = "continue88";
+        }
+        $project->createProjectGame($projectName);
+
+        $targetFilename = $this->validateFilename($targetFilename);
+        $extension = pathinfo($targetFilename, PATHINFO_EXTENSION);
+        $filename  = pathinfo($targetFilename, PATHINFO_FILENAME);
+
+        $tempFolder = __DIR__ . "/../../storage/temp";
+        if (!file_exists($tempFolder)) mkdir($tempFolder, 0777, true);
+
+        $bucketName = $project->getBucketName($projectName, false, true);
+        if (!file_exists($filePath)) throw new \Exception('File not exist.');
+
+        $path = __DIR__ . "/../../storage/metadata";
+        if (!file_exists($path)) mkdir($path, 0777, true);
+
+        $localAsset = $tempFolder . "/" . $filename . "." . $extension;
+        if ($extension == "jpg" || $extension == "jpeg" || $extension == "png" || $extension == "bmp") {
+            $targetFilename = $filename . ".webp";
+            $localAsset = $tempFolder . "/" . $targetFilename;
+            try {
+                if (function_exists('imagewebp')) {
+                    switch ($extension) {
+                        case "jpg":
+                        case "jpeg":
+                            $image = imagecreatefromjpeg($filePath);
+                            break;
+                        case "png": //IMAGETYPE_PNG
+                            $image = imagecreatefrompng($filePath);
+                            imagepalettetotruecolor($image);
+                            imagealphablending($image, true);
+                            imagesavealpha($image, true);
+                            break;
+                        case "bmp": // IMAGETYPE_BMP
+                            $image = imagecreatefrombmp($filePath);
+                            break;
+                        default:
+                            return false;
+                    }
+                    // Save the image
+                    $result = \imagewebp($image, $localAsset, 100);
+                    if (!$result) {
+                        throw new \Exception("failed");
+                    }
+                    // Free up memory
+                    imagedestroy($image);
+                    $extension = "webp";
+                }
+            } catch (\Exception $e) {
+                $targetFilename = $filename . "." . $extension;
+                $localAsset = $tempFolder . "/" . $targetFilename;
+            }
+        }
+        $content = file_get_contents($filePath);
+        file_put_contents($localAsset, $content);
+
+        $metadata = $path . "/" . \strtolower($projectName) . ".json";
+
+        if (file_exists($metadata)) $metadataContent = json_decode(file_get_contents($metadata), true);
+        else $metadataContent = array("files" => array());
+
+        $targetPathRaw = $targetPath;
+        if ($targetPath === "" || $targetPath === "/") {
+            $targetPathRaw = "/";
+            // if (in_array($targetFilename, $metadataContent["files"])) throw new \Exception('File already exist at cloud, delete first.');
+            if (!in_array($targetFilename, $metadataContent["files"])) $metadataContent["files"][] = $targetFilename;
+        } else {
+            $targetPath = $this->buildPath($targetPath);
+            $metadataContent = $this->processingPath($metadataContent, $targetPath, $targetFilename);
+        }
+
+        if ($targetPathRaw !== "/") {
+            if (substr($targetPathRaw, 0, 1) === "/") $targetPathRaw = substr($targetPathRaw, 1);
+            if (substr($targetPathRaw, -1) !== "/") $targetPathRaw = $targetPathRaw . "/";
+        } else $targetPathRaw = "";
+
+
+        $file = fopen($localAsset, 'r');
+        $objectName = $targetPathRaw . $targetFilename;
+
+        $bucket = $this->_storage->bucket($bucketName);
+
+        $object = $bucket->upload($file, ['name' => $objectName]);
+        $object->update(['acl' => []], ['predefinedAcl' => 'PUBLICREAD']);
+
+        $metadataContent = json_encode($metadataContent);
+        file_put_contents($metadata, $metadataContent);
+        $url = $project->generateUrlGameAsset($projectName, $targetPathRaw . $targetFilename, "standard");
+        \unlink($localAsset);
+
+        return $url;
     }
 
     public function uploadFile($projectName, $filePath, $targetPath, $targetFilename, $mode = "standard")
@@ -361,9 +460,9 @@ class Manager
                 $project->addLabelToBucket($bucket->name(), "tag", "transaction");
 
                 $lifecycle = Bucket::lifecycle()
-                ->addDeleteRule([
-                    'age' => 7
-                ]);
+                    ->addDeleteRule([
+                        'age' => 31
+                    ]);
 
                 $bucket->update([
                     'lifecycle' => $lifecycle
@@ -373,9 +472,9 @@ class Manager
                 $project->addLabelToBucket($bucket->name(), "tag", "report");
 
                 $lifecycle = Bucket::lifecycle()
-                ->addDeleteRule([
-                    'age' => 7
-                ]);
+                    ->addDeleteRule([
+                        'age' => 7
+                    ]);
 
                 $bucket->update([
                     'lifecycle' => $lifecycle
