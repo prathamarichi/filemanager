@@ -365,7 +365,10 @@ class Manager
         $metadataContent = json_encode($metadataContent);
         file_put_contents($metadata, $metadataContent);
         $url = $project->generateUrlGameAsset($projectName, $targetPathRaw . $targetFilename, "standard");
-        \unlink($localAsset);
+        try {
+            \unlink($localAsset);
+        } catch (\Exception $e) {
+        }
 
         return $url;
     }
@@ -489,7 +492,11 @@ class Manager
         $metadataContent = json_encode($metadataContent);
         file_put_contents($metadata, $metadataContent);
         $url = $project->generateUrl($projectName, $targetPathRaw . $targetFilename, $mode);
-        \unlink($localAsset);
+        try {
+            \unlink($localAsset);
+        } catch (\Exception $e) {
+        }
+
 
         return $url;
     }
