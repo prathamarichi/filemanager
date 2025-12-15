@@ -10,10 +10,12 @@ class Project
 
     public $_config = false;
     public $_storage = false;
+    public $_bucketName = "aura88";
 
-    public function __construct($config)
+    public function __construct($config, $_bucketName = "aura88")
     {
         $this->_config = $config;
+        $this->_bucketName = $_bucketName;
 
         $this->_storage = new StorageClient([
             'projectId' => $this->_config->project_id,
@@ -48,7 +50,7 @@ class Project
 
     public function getBucketName($projectName, $extra = false, $gameAssets = false)
     {
-        $bucketName = $this->_config->project_id . "-" . $projectName;
+        $bucketName = $this->_bucketName . "-" . $projectName;
         if ($gameAssets === true) {
             $bucketName = $projectName;
         }

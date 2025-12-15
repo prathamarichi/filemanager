@@ -9,10 +9,12 @@ class Manager
 
     public $_config = false;
     public $_storage = false;
+    public $_bucketName = "aura88";
 
-    public function __construct($config)
+    public function __construct($config, $_bucketName)
     {
         $this->_config = $config;
+        $this->_bucketName = $_bucketName;
 
         $this->_storage = new StorageClient([
             'projectId' => $this->_config->project_id,
@@ -30,7 +32,7 @@ class Manager
 
     public function checkFile($projectName, $filePath, $mode = "standard")
     {
-        $project = new Project($this->_config);
+        $project = new Project($this->_config, $this->_bucketName);
         $project->createProject($projectName);
 
         $bucketName = $project->getBucketName($projectName);
@@ -135,7 +137,7 @@ class Manager
         try {
             $projectName = \strtolower($projectName);
 
-            $project = new Project($this->_config);
+            $project = new Project($this->_config,  $this->_bucketName);
             $project->createProject($projectName);
 
             $bucketName = $project->getBucketName($projectName);
@@ -195,7 +197,7 @@ class Manager
 
             $projectName = \strtolower($projectName);
 
-            $project = new Project($this->_config);
+            $project = new Project($this->_config,  $this->_bucketName);
             $bucketName = $project->getBucketName($projectName);
             if ($mode === "export") $bucketName = $project->getBucketName($projectName, "export");
             else if ($mode === "transaction") $bucketName = $project->getBucketName($projectName, "transaction");
@@ -274,7 +276,7 @@ class Manager
 
     public function uploadFileGame($projectName, $filePath, $targetPath, $targetFilename)
     {
-        $project = new Project($this->_config);
+        $project = new Project($this->_config,  $this->_bucketName);
         if ($projectName == "") {
             $projectName = "continue88";
         }
@@ -375,7 +377,7 @@ class Manager
 
     public function uploadFile($projectName, $filePath, $targetPath, $targetFilename, $mode = "standard")
     {
-        $project = new Project($this->_config);
+        $project = new Project($this->_config,  $this->_bucketName);
         $project->createProject($projectName);
 
         $targetFilename = $this->validateFilename($targetFilename);
