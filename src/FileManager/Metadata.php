@@ -2,15 +2,17 @@
 
 namespace FileManager;
 
-class Metadata {
-
-    public function buildPath($pathString, $pathParts=false) {
+class Metadata
+{
+    //Tester
+    public function buildPath($pathString, $pathParts = false)
+    {
         if ($pathString === "/") $pathString = "";
         if ($pathString === "") return false;
         if (!$pathParts) $pathParts = explode('/', $pathString);
 
         do {
-            if(empty($pathParts)) break;
+            if (empty($pathParts)) break;
             $firstElement = array_pop($pathParts);
             if ($firstElement !== "") $path = [$firstElement];
         } while ($firstElement === "");
@@ -23,7 +25,8 @@ class Metadata {
         return $path;
     }
 
-    protected function accessingPath($metadataContent, $targetPath) {
+    protected function accessingPath($metadataContent, $targetPath)
+    {
         $selectedFolder = false;
 
         foreach ($targetPath as $key => $path) {
@@ -39,7 +42,8 @@ class Metadata {
         return $selectedFolder;
     }
 
-    protected function checkPath($metadataContent, $buildPath, $exist=true) {
+    protected function checkPath($metadataContent, $buildPath, $exist = true)
+    {
         foreach ($buildPath as $key => $path) {
             if ($key == "0") {
                 if (!array_key_exists($path, $metadataContent)) return false;
@@ -52,7 +56,8 @@ class Metadata {
         return $exist;
     }
 
-    protected function removePath($metadataContent, $buildPath, $filename=false) {
+    protected function removePath($metadataContent, $buildPath, $filename = false)
+    {
         if ($buildPath) {
             foreach ($buildPath as $key => $path) {
                 if ($key == "0") {
@@ -78,7 +83,8 @@ class Metadata {
         return $metadataContent;
     }
 
-    protected function processingPath($metadataContent, $buildPath, $targetFilename=false) {
+    protected function processingPath($metadataContent, $buildPath, $targetFilename = false)
+    {
         foreach ($buildPath as $key => $path) {
             if ($key == "0") {
                 if (!is_array($metadataContent)) {
@@ -98,14 +104,15 @@ class Metadata {
         return $metadataContent;
     }
 
-    public function getProjectMeta($projectName) {
+    public function getProjectMeta($projectName)
+    {
         $projectName = \strtolower($projectName);
 
-        $path = __DIR__."/../../storage/metadata/";
+        $path = __DIR__ . "/../../storage/metadata/";
         if (!file_exists($path)) mkdir($path, 0777, true);
 
         //delete files first before deleting bucket
-        $metadata = $path.\strtolower($projectName).".json";
+        $metadata = $path . \strtolower($projectName) . ".json";
 
         if (file_exists($metadata)) {
             $metadataContent = json_decode(file_get_contents($metadata), true);
@@ -120,7 +127,8 @@ class Metadata {
         return $metadataContent;
     }
 
-    public function checkFolderMeta($projectName, $path) {
+    public function checkFolderMeta($projectName, $path)
+    {
         $projectName = \strtolower($projectName);
         $metadataContent = $this->getProjectMeta($projectName);
         if ($path === "" || $path === "/") return true;
@@ -131,9 +139,10 @@ class Metadata {
         return $exist;
     }
 
-    public function createFolderMeta($projectName, $path) {
+    public function createFolderMeta($projectName, $path)
+    {
         $projectName = \strtolower($projectName);
-        $metadata = __DIR__."/../../storage/metadata/".$projectName.".json";
+        $metadata = __DIR__ . "/../../storage/metadata/" . $projectName . ".json";
         $metadataContent = $this->getProjectMeta($projectName);
         if ($path === "" || $path === "/") return $metadataContent;
 
@@ -147,9 +156,10 @@ class Metadata {
         return $metadataContent;
     }
 
-    public function deleteFolderMeta($projectName, $path) {
+    public function deleteFolderMeta($projectName, $path)
+    {
         $projectName = \strtolower($projectName);
-        $metadata = __DIR__."/../../storage/metadata/".$projectName.".json";
+        $metadata = __DIR__ . "/../../storage/metadata/" . $projectName . ".json";
         $metadataContent = $this->getProjectMeta($projectName);
         if ($path === "" || $path === "/") return $metadataContent;
 
@@ -163,14 +173,15 @@ class Metadata {
         return $metadataContent;
     }
 
-    public function browse($projectName, $filePath="", $mode="standard") {
+    public function browse($projectName, $filePath = "", $mode = "standard")
+    {
         $projectName = \strtolower($projectName);
 
-        $path = __DIR__."/../../storage/metadata";
+        $path = __DIR__ . "/../../storage/metadata";
         if (!file_exists($path)) mkdir($path, 0777, true);
 
-        $metadata = $path."/".$projectName.".json";
-        if ($mode === "export") $metadata = $path."/".$projectName."-export.json";
+        $metadata = $path . "/" . $projectName . ".json";
+        if ($mode === "export") $metadata = $path . "/" . $projectName . "-export.json";
         if (file_exists($metadata)) $metadataContent = json_decode(file_get_contents($metadata), true);
         else $metadataContent = array("files" => array());
 
