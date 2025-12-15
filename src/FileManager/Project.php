@@ -139,13 +139,25 @@ class Project
         foreach ($projects as $projectName) {
             $bucketName = $this->getBucketName($projectName);
             if (!$this->checkBucket($bucketName)) {
-                $bucket = $this->_storage->createBucket($bucketName, array("storageClass" => "NEARLINE", 'location' => 'ASIA-SOUTHEAST1', 'retentionDurationSeconds' => 0));
+                $bucket = $this->_storage->createBucket($bucketName, array(
+                    "storageClass" => "NEARLINE",
+                    'location' => 'ASIA-SOUTHEAST1',
+                    'softDeletePolicy' => [
+                        'retentionDurationSeconds' => 0
+                    ]
+                ));
                 $this->addLabelToBucket($bucket->name(), "tag", "standard");
             }
 
             $bucketName = $this->getBucketName($projectName, "export");
             if (!$this->checkBucket($bucketName)) {
-                $bucket = $this->_storage->createBucket($bucketName, array("storageClass" => "NEARLINE", 'location' => 'ASIA-SOUTHEAST1', 'retentionDurationSeconds' => 0));
+                $bucket = $this->_storage->createBucket($bucketName, array(
+                    "storageClass" => "NEARLINE",
+                    'location' => 'ASIA-SOUTHEAST1',
+                    'softDeletePolicy' => [
+                        'retentionDurationSeconds' => 0
+                    ]
+                ));
                 $this->addLabelToBucket($bucket->name(), "tag", "report");
             } else {
                 $bucket = $this->_storage->bucket($bucketName);
@@ -162,7 +174,13 @@ class Project
 
             $bucketName = $this->getBucketName($projectName, "transaction");
             if (!$this->checkBucket($bucketName)) {
-                $bucket = $this->_storage->createBucket($bucketName, array("storageClass" => "NEARLINE", 'location' => 'ASIA-SOUTHEAST1', 'retentionDurationSeconds' => 0));
+                $bucket = $this->_storage->createBucket($bucketName, array(
+                    "storageClass" => "NEARLINE",
+                    'location' => 'ASIA-SOUTHEAST1',
+                    'softDeletePolicy' => [
+                        'retentionDurationSeconds' => 0
+                    ]
+                ));
 
                 $this->addLabelToBucket($bucket->name(), "tag", "transaction");
             } else {
@@ -189,13 +207,25 @@ class Project
         }
         $bucketName = $this->getBucketName($projectName, false, true);
         if (!$this->checkBucket($bucketName)) {
-            $bucket = $this->_storage->createBucket($bucketName, array("storageClass" => "NEARLINE", 'location' => 'ASIA-SOUTHEAST1', 'retentionDurationSeconds' => 0));
+            $bucket = $this->_storage->createBucket($bucketName, array(
+                "storageClass" => "NEARLINE",
+                'location' => 'ASIA-SOUTHEAST1',
+                'softDeletePolicy' => [
+                    'retentionDurationSeconds' => 0
+                ]
+            ));
             $this->addLabelToBucket($bucket->name(), "tag", "standard");
 
             $bucketName = $this->getBucketName($projectName, "export", true);
             if ($this->checkBucket($bucketName)) $this->deleteBucket($bucketName);
 
-            $bucket = $this->_storage->createBucket($bucketName, array("storageClass" => "NEARLINE", 'location' => 'ASIA-SOUTHEAST1', 'retentionDurationSeconds' => 0));
+            $bucket = $this->_storage->createBucket($bucketName, array(
+                "storageClass" => "NEARLINE",
+                'location' => 'ASIA-SOUTHEAST1',
+                'softDeletePolicy' => [
+                    'retentionDurationSeconds' => 0
+                ]
+            ));
             $lifecycle = Bucket::lifecycle()
                 ->addDeleteRule([
                     'age' => 7
@@ -209,7 +239,13 @@ class Project
             $bucketName = $this->getBucketName($projectName, "transaction", true);
             if ($this->checkBucket($bucketName)) $this->deleteBucket($bucketName);
 
-            $bucket = $this->_storage->createBucket($bucketName, array("storageClass" => "NEARLINE", 'location' => 'ASIA-SOUTHEAST1', 'retentionDurationSeconds' => 0));
+            $bucket = $this->_storage->createBucket($bucketName, array(
+                "storageClass" => "NEARLINE",
+                'location' => 'ASIA-SOUTHEAST1',
+                'softDeletePolicy' => [
+                    'retentionDurationSeconds' => 0
+                ]
+            ));
             $lifecycle = Bucket::lifecycle()
                 ->addDeleteRule([
                     'age' => 31
@@ -244,13 +280,25 @@ class Project
     {
         $bucketName = $this->getBucketName($projectName, false);
         if (!$this->checkBucket($bucketName)) {
-            $bucket = $this->_storage->createBucket($bucketName, array("storageClass" => "NEARLINE", 'location' => 'ASIA-SOUTHEAST1', 'retentionDurationSeconds' => 0));
+            $bucket = $this->_storage->createBucket($bucketName, array(
+                "storageClass" => "NEARLINE",
+                'location' => 'ASIA-SOUTHEAST1',
+                'softDeletePolicy' => [
+                    'retentionDurationSeconds' => 0
+                ]
+            ));
             $this->addLabelToBucket($bucket->name(), "tag", "standard");
 
             $bucketName = $this->getBucketName($projectName, "export");
             if ($this->checkBucket($bucketName)) $this->deleteBucket($bucketName);
 
-            $bucket = $this->_storage->createBucket($bucketName, array("storageClass" => "NEARLINE", 'location' => 'ASIA-SOUTHEAST1', 'retentionDurationSeconds' => 0));
+            $bucket = $this->_storage->createBucket($bucketName, array(
+                "storageClass" => "NEARLINE",
+                'location' => 'ASIA-SOUTHEAST1',
+                'softDeletePolicy' => [
+                    'retentionDurationSeconds' => 0
+                ]
+            ));
             $lifecycle = Bucket::lifecycle()
                 ->addDeleteRule([
                     'age' => 7
@@ -264,7 +312,13 @@ class Project
             $bucketName = $this->getBucketName($projectName, "transaction");
             if ($this->checkBucket($bucketName)) $this->deleteBucket($bucketName);
 
-            $bucket = $this->_storage->createBucket($bucketName, array("storageClass" => "NEARLINE", 'location' => 'ASIA-SOUTHEAST1', 'retentionDurationSeconds' => 0));
+            $bucket = $this->_storage->createBucket($bucketName, array(
+                "storageClass" => "NEARLINE",
+                'location' => 'ASIA-SOUTHEAST1',
+                'softDeletePolicy' => [
+                    'retentionDurationSeconds' => 0
+                ]
+            ));
             $lifecycle = Bucket::lifecycle()
                 ->addDeleteRule([
                     'age' => 31
