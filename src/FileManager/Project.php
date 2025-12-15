@@ -350,7 +350,7 @@ class Project
 
     public function deleteProject($projectName)
     {
-        $manager = new Manager($this->_config);
+        $manager = new Manager($this->_config, $this->_bucketName);
 
         //delete files first before deleting bucket
         $bucketName = $this->getBucketName($projectName);
@@ -430,7 +430,7 @@ class Project
     {
         foreach ($contents["files"] as $file) {
             $filePath = $path . "/" . $file;
-            $manager = new Manager($this->_config);
+            $manager = new Manager($this->_config, $this->_bucketName);
             $manager->deleteFile($projectName, $filePath);
         }
 
