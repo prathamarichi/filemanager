@@ -101,7 +101,10 @@ class Manager
     {
         $filePath = \strtolower($filePath);
         $path = __DIR__ . "/../../storage/metadata";
-        if (!file_exists($path)) mkdir($path, 0777, true);
+        if (!file_exists($path)) {
+            mkdir($path, 0777, true);
+            chmod($path, 0777);
+        }
 
         $metadata = $path . "/" . \strtolower($projectName) . ".json";
         if ($mode === "export") $metadata = $path . "/" . \strtolower($projectName) . "-export.json";
@@ -226,7 +229,10 @@ class Manager
     {
         //update metadata
         $path = __DIR__ . "/../../storage/metadata";
-        if (!file_exists($path)) mkdir($path, 0777, true);
+        if (!file_exists($path)) {
+            mkdir($path, 0777, true);
+            chmod($path, 0777);
+        }
 
         $metadata = $path . "/" . $projectName . ".json";
         if ($mode === "export") $metadata = $path . "/" . $projectName . "-export.json";
@@ -257,6 +263,7 @@ class Manager
             $metadataContent = $this->removingPath($metadataContent, $filePath, $filename);
             $metadataContent = json_encode($metadataContent);
             file_put_contents($metadata, $metadataContent);
+            chmod($metadata, 0777);
         }
 
         return true;
@@ -293,7 +300,10 @@ class Manager
         if (!file_exists($filePath)) throw new \Exception('File not exist.');
 
         $path = __DIR__ . "/../../storage/metadata";
-        if (!file_exists($path)) mkdir($path, 0777, true);
+        if (!file_exists($path)) {
+            mkdir($path, 0777, true);
+            chmod($path, 0777);
+        }
 
         $localAsset = $tempFolder . "/" . $filename . "." . $extension;
         if ($extension == "jpg" || $extension == "jpeg" || $extension == "png" || $extension == "bmp") {
@@ -366,6 +376,8 @@ class Manager
 
         $metadataContent = json_encode($metadataContent);
         file_put_contents($metadata, $metadataContent);
+        chmod($metadata, 0777);
+
         $url = $project->generateUrlGameAsset($projectName, $targetPathRaw . $targetFilename, "standard");
         try {
             \unlink($localAsset);
@@ -393,7 +405,10 @@ class Manager
         if (!file_exists($filePath)) throw new \Exception('File not exist.');
 
         $path = __DIR__ . "/../../storage/metadata";
-        if (!file_exists($path)) mkdir($path, 0777, true);
+        if (!file_exists($path)) {
+            mkdir($path, 0777, true);
+            chmod($path, 0777);
+        }
 
         $localAsset = $tempFolder . "/" . $filename . "." . $extension;
         if ($extension == "jpg" || $extension == "jpeg" || $extension == "png" || $extension == "bmp") {
@@ -493,6 +508,7 @@ class Manager
 
         $metadataContent = json_encode($metadataContent);
         file_put_contents($metadata, $metadataContent);
+        mkdir($metadata, 0777, true);
         $url = $project->generateUrl($projectName, $targetPathRaw . $targetFilename, $mode);
         try {
             \unlink($localAsset);
