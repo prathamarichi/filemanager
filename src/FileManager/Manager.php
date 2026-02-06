@@ -102,6 +102,7 @@ class Manager
         $filePath = \strtolower($filePath);
         $path = __DIR__ . "/../../storage/metadata";
         if (!file_exists($path)) {
+
             mkdir($path, 0777, true);
             try {
                 chmod($path, 0777);
@@ -526,7 +527,11 @@ class Manager
 
         $metadataContent = json_encode($metadataContent);
         file_put_contents($metadata, $metadataContent);
-        mkdir($metadata, 0777, true);
+        try {
+            mkdir($metadata, 0777, true);
+        } catch (\Exception $e) {
+        }
+
         $url = $project->generateUrl($projectName, $targetPathRaw . $targetFilename, $mode);
         try {
             \unlink($localAsset);
