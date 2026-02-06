@@ -103,7 +103,10 @@ class Manager
         $path = __DIR__ . "/../../storage/metadata";
         if (!file_exists($path)) {
             mkdir($path, 0777, true);
-            chmod($path, 0777);
+            try {
+                chmod($path, 0777);
+            } catch (\Exception) {
+            }
         }
 
         $metadata = $path . "/" . \strtolower($projectName) . ".json";
@@ -231,7 +234,10 @@ class Manager
         $path = __DIR__ . "/../../storage/metadata";
         if (!file_exists($path)) {
             mkdir($path, 0777, true);
-            chmod($path, 0777);
+            try {
+                chmod($path, 0777);
+            } catch (\Exception) {
+            }
         }
 
         $metadata = $path . "/" . $projectName . ".json";
@@ -263,7 +269,10 @@ class Manager
             $metadataContent = $this->removingPath($metadataContent, $filePath, $filename);
             $metadataContent = json_encode($metadataContent);
             file_put_contents($metadata, $metadataContent);
-            chmod($metadata, 0777);
+            try {
+                chmod($metadata, 0777);
+            } catch (\Exception) {
+            }
         }
 
         return true;
@@ -302,7 +311,10 @@ class Manager
         $path = __DIR__ . "/../../storage/metadata";
         if (!file_exists($path)) {
             mkdir($path, 0777, true);
-            chmod($path, 0777);
+            try {
+                chmod($path, 0777);
+            } catch (\Exception) {
+            }
         }
 
         $localAsset = $tempFolder . "/" . $filename . "." . $extension;
@@ -376,8 +388,11 @@ class Manager
 
         $metadataContent = json_encode($metadataContent);
         file_put_contents($metadata, $metadataContent);
-        chmod($metadata, 0777);
 
+        try {
+            chmod($metadata, 0777);
+        } catch (\Exception) {
+        }
         $url = $project->generateUrlGameAsset($projectName, $targetPathRaw . $targetFilename, "standard");
         try {
             \unlink($localAsset);
@@ -407,7 +422,10 @@ class Manager
         $path = __DIR__ . "/../../storage/metadata";
         if (!file_exists($path)) {
             mkdir($path, 0777, true);
-            chmod($path, 0777);
+            try {
+                chmod($path, 0777);
+            } catch (\Exception) {
+            }
         }
 
         $localAsset = $tempFolder . "/" . $filename . "." . $extension;
